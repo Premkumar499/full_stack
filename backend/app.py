@@ -113,16 +113,18 @@ def send_otp():
 @app.route("/auth/verify-otp", methods=["POST"])
 def verify_otp():
     data = request.json
-    email = data.get("email")
-    otp = data.get("otp")
+    email = data.get("email", "").strip()
+    otp = str(data.get("otp", "")).strip()
 
     record = otp_col.find_one({"email": email})
 
     if not record:
-        return jsonify({"error": "OTP not found"}), 400
+        return jsonify({"error": "OTP not found. Please signup again."}), 400
 
-    if record["otp"] != otp:
-        return jsonify({"error": "Invalid OTP"}), 400
+    stored_otp = str(record["otp"]).strip()
+    
+    if stored_otp != otp:
+        return jsonify({"error": f"Invalid OTP"}), 400
 
     # Handle both timezone-aware and naive datetime from DB
     expires_at = record["expires_at"]
