@@ -1,15 +1,18 @@
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Flask
-SECRET_KEY = "super-secret-key-change-this"
+SECRET_KEY = os.getenv("SECRET_KEY")
 
 # MongoDB Atlas
-MONGO_URI = "mongodb+srv://prompt_admin:prem2468@prompting.yadd018.mongodb.net/prompt_library?retryWrites=true&w=majority&appName=prompting"
+MONGO_URI = os.getenv("MONGO_URI")
 
 # Gmail SMTP
-EMAIL_ADDRESS = "premkumar34541@gmail.com"
-EMAIL_PASSWORD = "gklaxvjsunutninb"  # Replace with App Password from Google
+EMAIL_ADDRESS = os.getenv("EMAIL_ADDRESS")
+EMAIL_PASSWORD = os.getenv("EMAIL_PASSWORD")
 
 # JWT
-JWT_SECRET = "jwt-secret-key"
+JWT_SECRET = os.getenv("JWT_SECRET")
 JWT_EXPIRY_SECONDS = 86400  # 1 day

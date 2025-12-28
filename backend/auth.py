@@ -1,6 +1,6 @@
 import random
 import jwt
-import datetime
+from datetime import datetime, timedelta, timezone
 import smtplib
 from email.message import EmailMessage
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -29,6 +29,6 @@ def verify_password(password, hashed):
 def create_jwt(email):
     payload = {
         "email": email,
-        "exp": datetime.datetime.utcnow() + datetime.timedelta(seconds=JWT_EXPIRY_SECONDS)
+        "exp": datetime.now(timezone.utc) + timedelta(seconds=JWT_EXPIRY_SECONDS)
     }
     return jwt.encode(payload, JWT_SECRET, algorithm="HS256")

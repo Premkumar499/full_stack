@@ -1,6 +1,6 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import jwt
 
 from config import SECRET_KEY, JWT_SECRET
@@ -66,7 +66,7 @@ def signup():
     
     # Generate OTP
     otp = generate_otp()
-    expires_at = datetime.utcnow() + timedelta(minutes=5)
+    expires_at = datetime.now(timezone.utc) + timedelta(minutes=5)
 
     # Store OTP with hashed password
     otp_col.delete_many({"email": email})
@@ -92,7 +92,7 @@ def send_otp():
         return jsonify({"error": "Email required"}), 400
 
     otp = generate_otp()
-    expires_at = datetime.utcnow() + timedelta(minutes=5)
+    expires_at = datetime.now(timezone.utc) + timedelta(minutes=5)
 
     otp_col.update_one(
         {"email": email},
@@ -124,7 +124,12 @@ def verify_otp():
     if record["otp"] != otp:
         return jsonify({"error": "Invalid OTP"}), 400
 
-    if datetime.utcnow() > record["expires_at"]:
+    # Handle both timezone-aware and naive datetime from DB
+    expires_at = record["expires_at"]
+    if expires_at.tzinfo is None:
+        expires_at = expires_at.replace(tzinfo=timezone.utc)
+    
+    if datetime.now(timezone.utc) > expires_at:
         return jsonify({"error": "OTP expired"}), 400
 
     # ✅ Auto-assign role: admin for specific email, user for others
@@ -136,7 +141,7 @@ def verify_otp():
             "password": record["password"],
             "role": role,
             "is_verified": True,
-            "created_at": datetime.utcnow()
+            "created_at": datetime.now(timezone.utc)
         })
 
     otp_col.delete_one({"email": email})
