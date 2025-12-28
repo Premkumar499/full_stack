@@ -14,20 +14,32 @@ def token_required(f):
         auth = request.headers.get("Authorization")
 
         if not auth or not auth.startswith("Bearer "):
-            return jsonify({"error": "Token required"}), 401
+            return jsonify({"error": "Please login to continue"}), 401
 
         token = auth.split(" ")[1]
 
         try:
             decoded = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
         except:
-            return jsonify({"error": "Invalid token"}), 401
+            return jsonify({"error": "Session expired. Please login again"}), 401
 
         request.user = decoded  # store user info
         return f(*args, **kwargs)
 
     return decorated
 
+
+def admin_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        email = request.user["email"]
+        user = users_col.find_one({"email": email})
+
+        if not user or user.get("role") != "admin":
+            return jsonify({"error": "You don't have permission to perform this action"}), 403
+
+        return f(*args, **kwargs)
+    return decorated
 
 
 app = Flask(__name__)
@@ -115,11 +127,14 @@ def verify_otp():
     if datetime.utcnow() > record["expires_at"]:
         return jsonify({"error": "OTP expired"}), 400
 
-    # ✅ INSERT HERE (this is the exact place)
+    # ✅ Auto-assign role: admin for specific email, user for others
     if not users_col.find_one({"email": email}):
+        role = "admin" if email == "premkumar101606@gmail.com" else "user"
+        
         users_col.insert_one({
             "email": email,
             "password": record["password"],
+            "role": role,
             "is_verified": True,
             "created_at": datetime.utcnow()
         })
@@ -144,6 +159,8 @@ def get_topics(level):
 
 
 @app.route("/topic", methods=["POST"])
+@token_required
+@admin_required
 def add_topic():
     data = request.json
     topics_col.insert_one(data)
