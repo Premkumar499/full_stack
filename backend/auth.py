@@ -3,13 +3,11 @@ import jwt
 import datetime
 import smtplib
 from email.message import EmailMessage
+from werkzeug.security import generate_password_hash, check_password_hash
 from config import EMAIL_ADDRESS, EMAIL_PASSWORD, JWT_SECRET, JWT_EXPIRY_SECONDS
-from database import users_col, otp_col
-
 
 def generate_otp():
     return str(random.randint(100000, 999999))
-
 
 def send_otp_email(to_email, otp):
     msg = EmailMessage()
@@ -22,6 +20,11 @@ def send_otp_email(to_email, otp):
         server.login(EMAIL_ADDRESS, EMAIL_PASSWORD)
         server.send_message(msg)
 
+def hash_password(password):
+    return generate_password_hash(password)
+
+def verify_password(password, hashed):
+    return check_password_hash(hashed, password)
 
 def create_jwt(email):
     payload = {

@@ -4,7 +4,7 @@ import os
 SECRET_KEY = "super-secret-key-change-this"
 
 # MongoDB Atlas
-MONGO_URI = "mongodb+srv://prompt_admin:prem2468@prompting.yadd018.mongodb.net/?appName=prompting"
+MONGO_URI = "mongodb+srv://prompt_admin:prem2468@prompting.yadd018.mongodb.net/prompt_library?retryWrites=true&w=majority&appName=prompting"
 
 # Gmail SMTP
 EMAIL_ADDRESS = "premkumar34541@gmail.com"
